@@ -34,7 +34,7 @@ const TweetsWrapper = styled.div`
   margin-top: 10px;
   display: flex;
   flex-direction: column;
-  width: 600px;
+  width: 100%;
 `;
 
 class SearchHashtag extends Component {

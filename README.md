@@ -15,16 +15,25 @@ npm install --save react-twitter-search-component
 ```jsx
 import React, { Component } from 'react'
 
-import MyComponent from 'react-twitter-search-component'
+import ReactTwitterSearchComponent from 'react-twitter-search-component'
 
 class Example extends Component {
+  const url = 'api url return JSON response from twitter search api'
   render () {
     return (
-      <MyComponent />
+      <ReactTwitterSearchComponent apiUrl={'url'}/>
     )
   }
 }
 ```
+## Example
+For run example need clone or download repository.
+Open example folder.
+Run "npm link".
+Example has test http-server.
+Open twitter-server from example folder, run "npm install".
+In root folder run "npm install".
+For run example open example folder and run "npm start".
 
 ## License
 

@@ -1,3 +1,4 @@
+// use stringz for twitter emoji
 import { length, substr } from 'stringz';
 
 export default class TwitterTextHelper {
