@@ -97,7 +97,6 @@ const ViewOnTwitter = styled.a`
 export default class Tweet extends Component {
     render() {
         const { data } = this.props;
-        console.log(data);
         const tweetText = TwitterTextHelper.textLinkify(data);
         return (
             <div>

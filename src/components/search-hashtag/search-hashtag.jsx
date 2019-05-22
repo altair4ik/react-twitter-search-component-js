@@ -110,7 +110,6 @@ class SearchHashtag extends Component {
     };
 
     render() {
-        console.log('render');
         const { apiUrl } = this.props;
         const { tweetsItems } = this.state;
         const del = (index) => {
