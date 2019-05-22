@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import fetch from 'isomorphic-fetch';
 import Hashtag from '../hashtag';
 import Tweet from '../tweet';
+import SortTypeEnum from '../../enums/sortType.enum';
 
 const Input = styled.input`
   outline: none;
@@ -42,6 +43,7 @@ class SearchHashtag extends Component {
         this.state = {
             hashtags: [],
             tweetsItems: [],
+            sortType: SortTypeEnum.BY_DATE,
         };
     }
 
@@ -56,29 +58,29 @@ class SearchHashtag extends Component {
   )
 
   keypressHandler = (event) => {
-      const { apiUrl } = this.props;
       if (event.key === 'Enter') {
           const { hashtags } = this.state;
           hashtags.push(`#${event.currentTarget.value}`);
           event.currentTarget.value = '';
           this.setState({ hashtags });
-
-          this.searchTweets(hashtags.join(' '), apiUrl)
-              .then(result => result.json(),
-                  (error) => {
-                      console.log('error: ', error);
-                  }).then((data) => {
-                  const tweets = JSON.parse(data.data);
-                  const tweetsItems = tweets.statuses.map(item => (
-                      <Tweet key={item.id} data={item} />
-                  ));
-                  tweetsItems.sort(this.compareToDate);
-                  this.setState({ tweetsItems });
-              });
+          this.onHashtagsChange();
       }
   }
 
-  compareToDate = (a, b) => {
+  onHashtagsChange = () => {
+      const { apiUrl } = this.props;
+      const { hashtags } = this.state;
+      this.searchTweets(hashtags.join(' '), apiUrl)
+          .then(result => result.json(),
+              (error) => {
+                  console.log('error: ', error);
+              }).then((data) => {
+              const tweetsItems = JSON.parse(data.data);
+              this.setState({ tweetsItems });
+          });
+  }
+
+  compareByDate = (a, b) => {
       const aDate = new Date(a.props.data.created_at).getTime();
       const bDate = new Date(b.props.data.created_at).getTime();
       if (aDate < bDate) {
@@ -90,44 +92,27 @@ class SearchHashtag extends Component {
       return 0;
   }
 
+  compareByFavorite = (a, b) => {
+      if (a.props.data.favorite_count < b.props.data.favorite_count) {
+          return 1;
+      }
+      if (a.props.data.favorite_count > b.props.data.favorite_count) {
+          return -1;
+      }
+      return 0;
+  }
+
     sortChange = (event) => {
-        const { tweetsItems } = this.state;
-        if (event.target.value === 'date') {
-            tweetsItems.sort(this.compareToDate);
-        }
-        if (event.target.value === 'favorite') {
-            tweetsItems.sort((a, b) => {
-                if (a.props.data.favorite_count < b.props.data.favorite_count) {
-                    return 1;
-                }
-                if (a.props.data.favorite_count > b.props.data.favorite_count) {
-                    return -1;
-                }
-                return 0;
-            });
-        }
-        this.setState({ tweetsItems });
+        this.setState({ sortType: event.target.value });
     };
 
     render() {
-        const { apiUrl } = this.props;
         const { tweetsItems } = this.state;
         const del = (index) => {
             const { hashtags } = this.state;
             hashtags.splice(index, 1);
             if (hashtags.length > 0) {
-                this.searchTweets(hashtags.join(' '), apiUrl)
-                    .then(result => result.json(),
-                        (error) => {
-                            console.log('error: ', error);
-                        }).then((data) => {
-                        const tweets = JSON.parse(data.data);
-                        const tweetsItemsUpdated = tweets.statuses.map(item => (
-                            <Tweet key={item.id} data={item} />
-                        ));
-                        tweetsItemsUpdated.sort(this.compareToDate);
-                        this.setState({ tweetsItems: tweetsItemsUpdated });
-                    });
+                this.onHashtagsChange();
             }
             this.setState({ hashtags });
         };
@@ -136,7 +121,14 @@ class SearchHashtag extends Component {
             const keyId = `${item}${index}`;
             return <Hashtag index={index} del={del} text={item} key={keyId} />;
         });
-
+        let tweets = [];
+        if (tweetsItems.statuses) {
+            tweets = tweetsItems.statuses.map(item => (
+                <Tweet key={item.id} data={item} />
+            ));
+            const { sortType } = this.state;
+            tweets.sort(sortType === SortTypeEnum.BY_DATE ? this.compareByDate : this.compareByFavorite);
+        }
         return (
             <div>
                 <Input
@@ -149,16 +141,16 @@ class SearchHashtag extends Component {
                     {items}
                 </HashtagsWrapper>
                 <SortSelectWrapper>
-                    {tweetsItems.length > 0 ? (
+                    {tweets.length > 0 ? (
                         <SortSelect onChange={this.sortChange}>
-                            <option value="date">By date</option>
-                            <option value="favorite">By favorite</option>
+                            <option value={SortTypeEnum.BY_DATE}>By date</option>
+                            <option value={SortTypeEnum.BY_FAVORITE}>By favorite</option>
                         </SortSelect>
                     ) : null
                     }
                 </SortSelectWrapper>
                 <TweetsWrapper>
-                    {tweetsItems}
+                    {tweets}
                 </TweetsWrapper>
             </div>
         );
