@@ -59,6 +59,9 @@ class SearchHashtag extends Component {
 
   keypressHandler = (event) => {
       if (event.key === 'Enter') {
+          if (event.currentTarget.value === '') {
+              return;
+          }
           const { hashtags } = this.state;
           hashtags.push(`#${event.currentTarget.value}`);
           event.currentTarget.value = '';
